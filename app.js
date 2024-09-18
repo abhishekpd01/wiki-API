@@ -24,39 +24,42 @@ const articleSchema = {
 // create model
 const Article = mongoose.model("Article", articleSchema);
 
-// access the data in from collection
-app.get("/articles", async (req, res) => {
-    try {
-        const foundArticles = await Article.find(); // No callbacks, just await the promise
-        res.status(200).json(foundArticles); // Send the found articles as a JSON response
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Internal server error" }); // Handle any errors
-    }
-});
+// chained route handlers
 
-app.post("/articles", async function(req, res) {
-    const newArticle = Article({
-        title: req.body.title,
-        content: req.body.content
-    });
+app.route("/articles")
+    .get(async (req, res) => {
+        try {
+            const foundArticles = await Article.find(); // No callbacks, just await the promise
+            res.status(200).json(foundArticles); // Send the found articles as a JSON response
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ message: "Internal server error" }); // Handle any errors
+        }
+    })
 
-    try {
-        await newArticle.save(); // Save the article and await its completion
-        res.send("Successfully added new article.");
-    } catch (error) {
-        res.status(500).send(error); // Handle any errors during the save process
-    }
-});
+    .post(async function(req, res) {
+        const newArticle = Article({
+            title: req.body.title,
+            content: req.body.content
+        });
 
-app.delete("/articles", async function (req, res) {
-    try {
-        await Article.deleteMany();
-        res.send("Successfully deleted all articles.");
-    } catch (error) {
-        res.status(500).send(error);
+        try {
+            await newArticle.save(); // Save the article and await its completion
+            res.send("Successfully added new article.");
+        } catch (error) {
+            res.status(500).send(error); // Handle any errors during the save process
+        }
+    })
+
+    .delete(async function (req, res) {
+        try {
+            await Article.deleteMany();
+            res.send("Successfully deleted all articles.");
+        } catch (error) {
+            res.status(500).send(error);
+        }
     }
-});
+);
 
 app.listen(3000, ()=>{
     console.log("Server is up and running on port 3000.");
