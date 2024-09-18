@@ -24,10 +24,11 @@ const articleSchema = {
 // create model
 const Article = mongoose.model("Article", articleSchema);
 
-// chained route handlers
+//////////////////////////// Requests Targeting All Articles ////////////////////////////
 
+// chained route handlers
 app.route("/articles")
-    .get(async (req, res) => {
+    .get(async function (req, res) {
         try {
             const foundArticles = await Article.find(); // No callbacks, just await the promise
             res.status(200).json(foundArticles); // Send the found articles as a JSON response
@@ -60,6 +61,54 @@ app.route("/articles")
         }
     }
 );
+
+//////////////////////////// Requests Targeting A Specific Article ////////////////////////////
+
+app.route("/articles/:articleTitle")
+    .get(async function (req, res) {
+        try {
+            const foundArticle = await Article.findOne({title: req.params.articleTitle});
+            res.status(200).send(foundArticle);
+        } catch (error) {
+            res.send("No articles matching that title was found.");
+        }
+    })
+
+    .put(async function(req, res) {
+        try {
+            await Article.updateOne(
+                {title: req.params.articleTitle},
+                {title: req.body.title, content: req.body.content},
+                {overwrite: true}
+            )
+            res.status(200).send("Successfully updated article.");
+        } catch (error) {
+            res.status(500).send(error);
+        }
+    })
+
+    .patch(async function (req, res) {
+        try {
+            await Article.updateOne(
+                {title: req.params.articleTitle},
+                {$set: req.body}
+            )
+            res.status(200).send("Article updated Successfully.");
+        } catch (error) {
+            res.status(500).send(error);
+        }
+    })
+
+    .delete(async function(req, res) {
+        try {
+            await Article.deleteOne(
+                {title: req.params.articleTitle}
+            )
+            res.status(200).send("Successfully deleted the corresponding article.");
+        } catch (error) {
+            res.status(500).send(error);
+        }
+    });
 
 app.listen(3000, ()=>{
     console.log("Server is up and running on port 3000.");
